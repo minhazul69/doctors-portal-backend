@@ -21,6 +21,7 @@ async function run() {
       .db("doctors_portal")
       .collection("services");
     const bookingCollection = client.db("doctors_portal").collection("booking");
+    const userCollection = client.db("doctors_portal").collection("user");
     app.get("/services", async (req, res) => {
       const query = {};
       const cursor = serviceCollection.find(query);
@@ -51,15 +52,30 @@ async function run() {
       // STEP 03: FOT EACH SERVICE , FIND BOOKINGS FOR THAT SERVICE
       services.forEach((service) => {
         const serviceBooking = bookings.filter(
-          (b) => b.treatment === service.name
+          (book) => book.treatment === service.name
         );
-        const booked = serviceBooking.map((s) => s.option);
-        const available = service.slots.filter((s) => !booked.includes(s));
-        service.available = available;
-        // service.booked = booked;
-        // service.booked = serviceBooking.map((s) => s.option);
+        const bookedSlots = serviceBooking.map((s) => s.option);
+        const available = service.slots.filter((s) => !bookedSlots.includes(s));
+        service.slots = available;
       });
       res.send(services);
+    });
+    app.get("/booking", async (req, res) => {
+      const patient = req.query.patient;
+      const query = { patient: patient };
+      const booking = await bookingCollection.find(query).toArray();
+      res.send(booking);
+    });
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const user = req.body;
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      res.send(result);
     });
   } finally {
   }
