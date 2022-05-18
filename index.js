@@ -25,7 +25,7 @@ function verifyJWT(req, res, next) {
     if (err) {
       return res.status(403).send({ message: "Forbidden Access" });
     }
-    res.decoded = decoded;
+    req.decoded = decoded;
     next();
   });
 }
@@ -77,9 +77,7 @@ async function run() {
     });
     app.get("/booking", verifyJWT, async (req, res) => {
       const patient = req.query?.patient;
-      console.log(patient);
-      const decodedEmail = req.decoded?.email;
-      console.log(decodedEmail);
+      const decodedEmail = req.decoded.email;
       if (patient === decodedEmail) {
         const query = { patient: patient };
         const booking = await bookingCollection.find(query).toArray();
@@ -88,8 +86,17 @@ async function run() {
         return res.status(403).send({ message: "Forbidden Access" });
       }
     });
-    app.get("/users", async (req, res) => {
+    app.get("/users", verifyJWT, async (req, res) => {
       const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+    app.put("/user/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const updateDoc = {
+        $set: { role: "admin" },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
     app.put("/user/:email", async (req, res) => {
