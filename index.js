@@ -148,6 +148,13 @@ async function run() {
       const result = await doctorCollection.insertOne(user);
       res.send(result);
     });
+    app.delete("/doctor/:id", verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: ObjectId(id) };
+      const result = await doctorCollection.deleteOne(query);
+      res.send(result);
+    });
   } finally {
   }
 }
