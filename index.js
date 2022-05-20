@@ -37,9 +37,10 @@ async function run() {
       .collection("services");
     const bookingCollection = client.db("doctors_portal").collection("booking");
     const userCollection = client.db("doctors_portal").collection("user");
+    const doctorCollection = client.db("doctors_portal").collection("doctor");
     app.get("/services", async (req, res) => {
       const query = {};
-      const cursor = serviceCollection.find(query);
+      const cursor = serviceCollection.find(query).project({ name: 1 });
       const services = await cursor.toArray();
       res.send(services);
     });
@@ -103,7 +104,6 @@ async function run() {
       const requesterAccount = await userCollection.findOne({
         email: requester,
       });
-      console.log(requesterAccount);
       if (requesterAccount.role === "admin") {
         const filter = { email: email };
         const updateDoc = {
@@ -131,9 +131,17 @@ async function run() {
     });
     app.delete("/deleteAdmin/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
       const query = { _id: ObjectId(id) };
       const result = await userCollection.deleteOne(query);
+      res.send(result);
+    });
+    app.get("/doctor", verifyJWT, async (req, res) => {
+      const result = await doctorCollection.find().toArray();
+      res.send(result);
+    });
+    app.post("/doctor", async (req, res) => {
+      const user = req.body;
+      const result = await doctorCollection.insertOne(user);
       res.send(result);
     });
   } finally {
