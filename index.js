@@ -99,6 +99,12 @@ async function run() {
         return res.status(403).send({ message: "Forbidden Access" });
       }
     });
+    app.delete("/booking/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+    });
     app.get("/users", verifyJWT, async (req, res) => {
       const result = await userCollection.find().toArray();
       res.send(result);
@@ -144,7 +150,6 @@ async function run() {
     });
     app.post("/doctor", verifyJWT, async (req, res) => {
       const user = req.body;
-      console.log(user);
       const result = await doctorCollection.insertOne(user);
       res.send(result);
     });
