@@ -94,8 +94,11 @@ async function run() {
           transactionId: payment.transactionId,
         },
       };
-      const updateBooking = await bookingCollection.findOne(filter, updateDoc);
       const result = await paymentCollection.insertOne(payment);
+      const updateBooking = await bookingCollection.updateOne(
+        filter,
+        updateDoc
+      );
       res.send(updateBooking);
     });
     app.get("/available", async (req, res) => {
